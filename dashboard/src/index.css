@@ -127,3 +127,119 @@ td {
 .fade-in {
   animation: fadeIn 0.5s ease forwards;
 }
+
+/* Scanner Section Styles */
+.scanner-form {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.input-group {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  color: #8b949e;
+}
+
+.input-group input {
+  width: 100%;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  color: white;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #58a6ff;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+}
+
+.scan-button {
+  background: #238636;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.scan-button:hover:not(:disabled) {
+  background: #2ea043;
+}
+
+.scan-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.scan-result-overlay {
+  margin-top: 1.5rem;
+}
+
+.result-badge {
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.bg-danger {
+  background: rgba(248, 81, 73, 0.1);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+}
+
+.bg-success {
+  background: rgba(46, 160, 67, 0.1);
+  border: 1px solid rgba(46, 160, 67, 0.3);
+}
+
+.result-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.result-main .label {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.result-main .score {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+}
+
+.recommendation {
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+
+.details {
+  font-size: 0.85rem;
+  color: #8b949e;
+  margin: 0;
+}

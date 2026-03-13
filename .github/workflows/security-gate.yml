@@ -1,0 +1,37 @@
+name: Adaptive Security Gate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  analyze-risk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install bandit requests
+
+      - name: Run Security Scan (Bandit)
+        run: |
+          # Generate the scan report in JSON format
+          bandit -r . -f json -o output.json || true 
+
+      - name: Context-Aware Risk Intelligence Gate
+        # Replace the URL below with your hosted Risk Engine API URL
+        # For local testing, you can use a tunnel like Ngrok
+        uses: ./.github/actions/risk-gate
+        with:
+          build_id: ${{ github.run_id }}
+          risk_engine_url: 'http://your-hosted-api.com' 
+          scan_results_path: 'output.json'

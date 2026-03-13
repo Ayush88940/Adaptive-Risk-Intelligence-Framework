@@ -4,9 +4,19 @@ import uvicorn
 import sqlalchemy
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import subprocess
+import tempfile
+import shutil
+import json
+import uuid
 from .models import VulnerabilitySchema, RiskRequest, RiskResponse, BuildDB, VulnerabilityDB
 from .scoring import calculate_risk_score, calculate_drift, calculate_sdi
 from .database import engine, Base, get_db
+from pydantic import BaseModel
+
+class RepoScanRequest(BaseModel):
+    repo_url: str
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -109,6 +119,102 @@ async def get_stats(db: Session = Depends(get_db)):
         "total_builds": total_builds,
         "avg_sdi": float(avg_sdi)
     }
+
+@app.post("/scan-repo")
+async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
+    """
+    Clones a GitHub repo, scans it with Bandit, and processes risk.
+    """
+    temp_dir = tempfile.mkdtemp()
+    try:
+        # 1. Clone repo (shallow clone for speed)
+        clone_res = subprocess.run(
+            ["git", "clone", "--depth", "1", request.repo_url, temp_dir],
+            capture_output=True, text=True
+        )
+        if clone_res.returncode != 0:
+            raise HTTPException(status_code=400, detail=f"Failed to clone repo: {clone_res.stderr}")
+
+        # 2. Run Bandit scan
+        scan_res = subprocess.run(
+            ["bandit", "-r", temp_dir, "-f", "json"],
+            capture_output=True, text=True
+        )
+        
+        # Parse result
+        scan_data = json.loads(scan_res.stdout)
+        results = scan_data.get("results", [])
+        
+        # 3. Map to ACRIF format
+        vulnerabilities = []
+        for issue in results:
+            sev_map = {"LOW": 3.0, "MEDIUM": 6.0, "HIGH": 9.0}
+            conf_map = {"LOW": 0.4, "MEDIUM": 0.7, "HIGH": 1.0}
+            
+            vulnerabilities.append(VulnerabilitySchema(
+                id=issue["test_id"],
+                severity=sev_map.get(issue["issue_severity"], 5.0),
+                exploitability=conf_map.get(issue["issue_confidence"], 0.5),
+                exposure=0.8,
+                criticality=0.7,
+                stage="prod",
+                historical=False
+            ))
+
+        # 4. Process using existing logic
+        build_id = f"repo_scan_{uuid.uuid4().hex[:8]}"
+        
+        # Reuse logic from calculate_risk
+        previous_build = db.query(BuildDB).order_by(BuildDB.timestamp.desc()).first()
+        previous_score = previous_build.risk_score if previous_build else 0.0
+        total_build_count = db.query(BuildDB).count() + 1
+        
+        risk_score = calculate_risk_score(vulnerabilities) if vulnerabilities else 0.0
+        drift = calculate_drift(risk_score, previous_score)
+        sdi = calculate_sdi(vulnerabilities, total_build_count) if vulnerabilities else 0.0
+        
+        decision = "BLOCK" if risk_score > 70 or drift > 20 else "ALLOW"
+        recommendation = "Review high-risk vulnerabilities" if decision == "BLOCK" else "Proceed with deployment"
+
+        # Save to DB
+        new_build = BuildDB(
+            build_id=build_id,
+            risk_score=risk_score,
+            drift=drift,
+            sdi=sdi,
+            decision=decision
+        )
+        db.add(new_build)
+        db.commit()
+        db.refresh(new_build)
+
+        for v in vulnerabilities:
+            v_db = VulnerabilityDB(
+                vuln_id=v.id,
+                severity=v.severity,
+                exploitability=v.exploitability,
+                exposure=v.exposure,
+                criticality=v.criticality,
+                stage=v.stage,
+                historical=v.historical,
+                build_id=new_build.id
+            )
+            db.add(v_db)
+        db.commit()
+
+        return {
+            "status": "success",
+            "decision": decision,
+            "risk_score": round(risk_score, 2),
+            "drift": round(drift, 2),
+            "recommendation": recommendation,
+            "vuln_count": len(vulnerabilities)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        shutil.rmtree(temp_dir)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

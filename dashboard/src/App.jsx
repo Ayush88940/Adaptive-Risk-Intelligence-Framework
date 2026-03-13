@@ -4,15 +4,18 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   AreaChart, Area, BarChart, Bar, Cell 
 } from 'recharts';
-import { Shield, AlertTriangle, Activity, BarChart3, Clock, ArrowUpRight, ArrowDownRight, RefreshCcw } from 'lucide-react';
+import { Shield, AlertTriangle, Activity, BarChart3, Clock, ArrowUpRight, ArrowDownRight, RefreshCcw, Search, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const App = () => {
   const [builds, setBuilds] = useState([]);
   const [stats, setStats] = useState({ avg_risk: 0, total_builds: 0, avg_sdi: 0 });
   const [loading, setLoading] = useState(true);
+  const [repoUrl, setRepoUrl] = useState('');
+  const [scanning, setScanning] = useState(false);
+  const [scanResult, setScanResult] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -34,6 +37,25 @@ const App = () => {
       ];
       setBuilds(mockBuilds);
       setLoading(false);
+    }
+  };
+
+  const handleScan = async (e) => {
+    e.preventDefault();
+    if (!repoUrl) return;
+    
+    setScanning(true);
+    setScanResult(null);
+    try {
+      const res = await axios.post(`${API_BASE}/scan-repo`, { repo_url: repoUrl });
+      setScanResult(res.data);
+      fetchData(); // Refresh metrics
+      setRepoUrl('');
+    } catch (err) {
+      console.error("Scan failed", err);
+      alert("Failed to scan repository. Ensure it's a public Python repo.");
+    } finally {
+      setScanning(false);
     }
   };
 
@@ -66,6 +88,55 @@ const App = () => {
           <RefreshCcw size={16} /> Refresh
         </button>
       </header>
+
+      {/* Repo Scanner Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card scanner-section"
+        style={{ marginBottom: '1.5rem', padding: '1.5rem' }}
+      >
+        <h3>Analyze External Repository</h3>
+        <p className="text-muted" style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>
+          Paste a public GitHub repository link below to perform a live Context-Aware risk scan.
+        </p>
+        <form onSubmit={handleScan} className="scanner-form">
+          <div className="input-group">
+            <Search className="input-icon" size={18} />
+            <input 
+              type="text" 
+              placeholder="https://github.com/username/repo"
+              value={repoUrl}
+              onChange={(e) => setRepoUrl(e.target.value)}
+              disabled={scanning}
+            />
+          </div>
+          <button type="submit" className="scan-button" disabled={scanning || !repoUrl}>
+            {scanning ? (
+              <><Loader2 className="spin" size={18} /> Analyzing...</>
+            ) : (
+              "Start Intelligent Scan"
+            )}
+          </button>
+        </form>
+
+        {scanResult && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="scan-result-overlay"
+          >
+            <div className={`result-badge ${scanResult.decision === 'BLOCK' ? 'bg-danger' : 'bg-success'}`}>
+              <div className="result-main">
+                <span className="label">SCAN RESULT: {scanResult.decision}</span>
+                <span className="score">Risk Score: {scanResult.risk_score}</span>
+              </div>
+              <p className="recommendation">{scanResult.recommendation}</p>
+              <p className="details">Found {scanResult.vuln_count} vulnerabilities in repository.</p>
+            </div>
+          </motion.div>
+        )}
+      </motion.div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', marginBottom: '1.5rem' }}>
         <div className="glass-card fade-in" style={{ animationDelay: '0.1s' }}>
