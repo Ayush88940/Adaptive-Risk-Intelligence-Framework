@@ -16,7 +16,7 @@ services:
   - type: web
     name: acrif-dashboard
     runtime: static
-    plan: free
+    # plan: free is removed here because static sites are implicitly free on Render
     buildCommand: cd dashboard && npm install && npm run build
     staticPublishPath: dashboard/dist
     headers:
