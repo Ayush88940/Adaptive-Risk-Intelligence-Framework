@@ -7,13 +7,13 @@ services:
     startCommand: uvicorn engine.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
-        value: sqlite:///./risk_intelligence.db # For demo, non-persistent is fine
+        value: sqlite:///./risk_intelligence.db
       - key: PYTHON_VERSION
         value: 3.9.0
 
+static_sites:
   # Frontend Dashboard
-  - type: static_site
-    name: acrif-dashboard
+  - name: acrif-dashboard
     env: static
     buildCommand: cd dashboard && npm install && npm run build
     publishPath: dashboard/dist
