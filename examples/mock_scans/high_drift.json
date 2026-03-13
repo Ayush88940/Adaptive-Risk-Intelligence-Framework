@@ -1,0 +1,22 @@
+{
+    "vulnerabilities": [
+        {
+            "id": "CVE-DRIFT-1",
+            "severity": 6.0,
+            "exploitability": 0.5,
+            "exposure": 0.5,
+            "criticality": 1.0,
+            "stage": "prod",
+            "historical": true
+        },
+        {
+            "id": "CVE-DRIFT-2",
+            "severity": 7.5,
+            "exploitability": 0.7,
+            "exposure": 0.6,
+            "criticality": 1.0,
+            "stage": "prod",
+            "historical": false
+        }
+    ]
+}

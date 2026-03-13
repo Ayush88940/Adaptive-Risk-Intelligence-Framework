@@ -1,0 +1,13 @@
+{
+    "vulnerabilities": [
+        {
+            "id": "CVE-LOW-1",
+            "severity": 4.0,
+            "exploitability": 0.3,
+            "exposure": 0.2,
+            "criticality": 0.4,
+            "stage": "dev",
+            "historical": false
+        }
+    ]
+}

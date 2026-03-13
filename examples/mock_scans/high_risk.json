@@ -1,0 +1,13 @@
+{
+    "vulnerabilities": [
+        {
+            "id": "CVE-CRITICAL-1",
+            "severity": 10.0,
+            "exploitability": 1.0,
+            "exposure": 1.0,
+            "criticality": 1.0,
+            "stage": "prod",
+            "historical": true
+        }
+    ]
+}

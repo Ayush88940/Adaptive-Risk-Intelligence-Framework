@@ -1,0 +1,23 @@
+name: 'Context-Aware Risk Gate'
+description: 'Gates CI/CD pipelines based on adaptive risk intelligence'
+inputs:
+  build_id:
+    description: 'Unique identifier for the build'
+    required: true
+  risk_engine_url:
+    description: 'URL of the risk engine API'
+    required: true
+    default: 'http://localhost:8000'
+  scan_results_path:
+    description: 'Path to the vulnerability scan results (JSON)'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Risk Analysis
+      shell: bash
+      run: |
+        python3 ${{ github.action_path }}/gate_logic.py \
+          --build-id "${{ inputs.build_id }}" \
+          --url "${{ inputs.risk_engine_url }}" \
+          --scan-path "${{ inputs.scan_results_path }}"
