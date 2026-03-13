@@ -11,9 +11,9 @@ services:
       - key: PYTHON_VERSION
         value: 3.9.0
 
-staticSites:
   # Frontend Dashboard
-  - name: acrif-dashboard
+  - type: web
+    name: acrif-dashboard
     env: static
     buildCommand: cd dashboard && npm install && npm run build
     publishPath: dashboard/dist
