@@ -1,11 +1,15 @@
 # Python
 venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .pytest_cache/
 .env
+pyvenv.cfg
+*.db
+*.sqlite
 
 # Node
 dashboard/node_modules/
