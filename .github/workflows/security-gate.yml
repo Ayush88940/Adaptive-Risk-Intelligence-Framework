@@ -33,5 +33,5 @@ jobs:
         uses: ./.github/actions/risk-gate
         with:
           build_id: ${{ github.run_id }}
-          risk_engine_url: 'http://your-hosted-api.com' 
+          risk_engine_url: 'https://acrif-backend.onrender.com' 
           scan_results_path: 'output.json'
