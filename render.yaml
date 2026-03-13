@@ -12,7 +12,7 @@ services:
         value: 3.9.0
 
   # Frontend Dashboard
-  - type: static
+  - type: static_site
     name: acrif-dashboard
     env: static
     buildCommand: cd dashboard && npm install && npm run build
