@@ -17,6 +17,8 @@ const App = () => {
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
 
+  const [scanError, setScanError] = useState(null);
+
   const fetchData = async () => {
     try {
       const [buildsRes, statsRes] = await Promise.all([
@@ -36,7 +38,7 @@ const App = () => {
           { build_id: 'v1.0.4', risk_score: 45, drift: -40, sdi: 10, decision: 'ALLOW', timestamp: '2024-03-13T13:00:00' }
       ];
       setBuilds(mockBuilds);
-      setStats({ avg_risk: 42.5, total_builds: 4, avg_sdi: 8.7 }); // Show realistic mock stats on failure
+      setStats({ avg_risk: 42.5, total_builds: 4, avg_sdi: 8.7 });
       setLoading(false);
     }
   };
@@ -47,14 +49,19 @@ const App = () => {
     
     setScanning(true);
     setScanResult(null);
+    setScanError(null);
+    
     try {
+      console.log(`Starting scan for: ${repoUrl} hitting ${API_BASE}`);
       const res = await axios.post(`${API_BASE}/scan-repo`, { repo_url: repoUrl });
+      console.log("Scan result received:", res.data);
       setScanResult(res.data);
       fetchData(); // Refresh metrics
       setRepoUrl('');
     } catch (err) {
       console.error("Scan failed", err);
-      alert("Failed to scan repository. Ensure it's a public Python repo.");
+      const msg = err.response?.data?.detail || err.message;
+      setScanError(`Scan failed: ${msg}. Check if the repo is public.`);
     } finally {
       setScanning(false);
     }
@@ -121,6 +128,12 @@ const App = () => {
           </button>
         </form>
 
+        {scanError && (
+          <div className="error-badge bg-danger" style={{ marginTop: '1rem', padding: '1rem', borderRadius: '8px' }}>
+            {scanError}
+          </div>
+        )}
+
         {scanResult && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -137,6 +150,10 @@ const App = () => {
             </div>
           </motion.div>
         )}
+        
+        <div style={{ fontSize: '10px', color: '#30363d', marginTop: '10px' }}>
+          Connected to: {API_BASE}
+        </div>
       </motion.div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', marginBottom: '1.5rem' }}>
