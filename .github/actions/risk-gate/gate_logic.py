@@ -18,6 +18,22 @@ def main():
         # For now, we assume the input is already in our expected format or we mock the mapping
         vulnerabilities = scan_data.get("vulnerabilities", [])
         
+        # Auto-mapping for Bandit if standard format is detected
+        if not vulnerabilities and "results" in scan_data:
+            print("Detected Bandit JSON format. Mapping results to ACRIF model...")
+            for issue in scan_data["results"]:
+                sev_map = {"LOW": 3.0, "MEDIUM": 6.0, "HIGH": 9.0}
+                conf_map = {"LOW": 0.4, "MEDIUM": 0.7, "HIGH": 1.0}
+                vulnerabilities.append({
+                    "id": issue["test_id"],
+                    "severity": sev_map.get(issue["issue_severity"], 5.0),
+                    "exploitability": conf_map.get(issue["issue_confidence"], 0.5),
+                    "exposure": 0.8,
+                    "criticality": 0.7,
+                    "stage": "prod",
+                    "historical": False
+                })
+        
         payload = {
             "build_id": args.build_id,
             "vulnerabilities": vulnerabilities

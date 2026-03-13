@@ -54,15 +54,30 @@ async def get_risk(request: RiskRequest, db: Session = Depends(get_db)):
     recommendation = "Review high-risk vulnerabilities" if decision == "BLOCK" else "Proceed with deployment"
     
     # 4. Save to Database
-    new_build = BuildDB(
-        build_id=request.build_id,
-        risk_score=risk_score,
-        drift=drift,
-        sdi=sdi,
-        decision=decision
-    )
-    db.add(new_build)
-    db.commit()
+    try:
+        new_build = BuildDB(
+            build_id=request.build_id,
+            risk_score=risk_score,
+            drift=drift,
+            sdi=sdi,
+            decision=decision
+        )
+        db.add(new_build)
+        db.commit()
+    except sqlalchemy.exc.IntegrityError:
+        db.rollback()
+        # If ID exists, append a unique suffix to prevent 500 error
+        unique_id = f"{request.build_id}_{uuid.uuid4().hex[:4]}"
+        new_build = BuildDB(
+            build_id=unique_id,
+            risk_score=risk_score,
+            drift=drift,
+            sdi=sdi,
+            decision=decision
+        )
+        db.add(new_build)
+        db.commit()
+    
     db.refresh(new_build)
     
     # Save vulnerabilities associated with the build
