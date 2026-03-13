@@ -14,9 +14,9 @@ services:
   # Frontend Dashboard
   - type: web
     name: acrif-dashboard
-    env: static
+    runtime: static
     buildCommand: cd dashboard && npm install && npm run build
-    publishPath: dashboard/dist
+    staticPublishPath: dashboard/dist
     headers:
       - path: /*
         name: Cache-Control
