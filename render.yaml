@@ -25,7 +25,4 @@ services:
         value: no-cache
     envVars:
       - key: VITE_API_URL
-        fromService:
-          name: acrif-backend
-          type: web
-          property: host
+        value: https://acrif-backend.onrender.com

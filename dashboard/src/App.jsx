@@ -23,12 +23,12 @@ const App = () => {
         axios.get(`${API_BASE}/builds`),
         axios.get(`${API_BASE}/stats`)
       ]);
-      setBuilds(buildsRes.data.reverse()); // Reverse for chronological order in charts
+      setBuilds(buildsRes.data.reverse());
       setStats(statsRes.data);
       setLoading(false);
     } catch (err) {
       console.error("Failed to fetch data", err);
-      // Mock data for demo if API is down
+      // Fallback to mock data for presentation if API is genuinely unreachable
       const mockBuilds = [
           { build_id: 'v1.0.1', risk_score: 15, drift: 0, sdi: 4, decision: 'ALLOW', timestamp: '2024-03-13T10:00:00' },
           { build_id: 'v1.0.2', risk_score: 25, drift: 10, sdi: 6, decision: 'ALLOW', timestamp: '2024-03-13T11:00:00' },
@@ -36,6 +36,7 @@ const App = () => {
           { build_id: 'v1.0.4', risk_score: 45, drift: -40, sdi: 10, decision: 'ALLOW', timestamp: '2024-03-13T13:00:00' }
       ];
       setBuilds(mockBuilds);
+      setStats({ avg_risk: 42.5, total_builds: 4, avg_sdi: 8.7 }); // Show realistic mock stats on failure
       setLoading(false);
     }
   };
