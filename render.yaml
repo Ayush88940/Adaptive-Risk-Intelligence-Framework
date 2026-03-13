@@ -11,7 +11,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.9.0
 
-static_sites:
+staticSites:
   # Frontend Dashboard
   - name: acrif-dashboard
     env: static
