@@ -89,12 +89,26 @@ const App = () => {
           </motion.h1>
           <p className="text-muted">Security Gating Dashboard for Secure CI/CD</p>
         </div>
-        <button 
-          onClick={fetchData} 
-          style={{ background: 'none', border: 'none', color: '#58a6ff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-        >
-          <RefreshCcw size={16} /> Refresh
-        </button>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <button 
+            onClick={fetchData} 
+            style={{ background: 'none', border: 'none', color: '#58a6ff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <RefreshCcw size={16} /> Refresh
+          </button>
+          <button 
+            onClick={async () => {
+              if (window.confirm('Clear all build history for a fresh demo?')) {
+                await axios.delete(`${API_BASE}/reset`);
+                setBuilds([]);
+                setStats({ avg_risk: 0, total_builds: 0, avg_sdi: 0 });
+              }
+            }}
+            style={{ background: 'none', border: '1px solid #f85149', color: '#f85149', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderRadius: '8px', fontSize: '0.85rem' }}
+          >
+            🗑️ Clear Data
+          </button>
+        </div>
       </header>
 
       {/* Repo Scanner Section */}

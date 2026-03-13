@@ -135,6 +135,17 @@ async def get_stats(db: Session = Depends(get_db)):
         "avg_sdi": float(avg_sdi)
     }
 
+@app.delete("/reset")
+async def reset_data(db: Session = Depends(get_db)):
+    """
+    Clears all build history and vulnerabilities from the database.
+    Use before a fresh demo.
+    """
+    db.query(VulnerabilityDB).delete()
+    db.query(BuildDB).delete()
+    db.commit()
+    return {"message": "All data cleared. Ready for a fresh demo!"}
+
 @app.post("/scan-repo")
 async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
     """
