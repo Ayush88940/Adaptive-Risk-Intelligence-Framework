@@ -153,18 +153,22 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
     """
     temp_dir = tempfile.mkdtemp()
     try:
-        # 1. Clone repo (shallow clone for speed)
+        # 1. Sanitize and Clone (with timeout)
+        url = request.repo_url.strip()
+        if not url.startswith(("http://", "https://")):
+            url = f"https://{url}"
+            
         clone_res = subprocess.run(
-            ["git", "clone", "--depth", "1", request.repo_url, temp_dir],
-            capture_output=True, text=True
+            ["git", "clone", "--depth", "1", url, temp_dir],
+            capture_output=True, text=True, timeout=60
         )
         if clone_res.returncode != 0:
             raise HTTPException(status_code=400, detail=f"Failed to clone repo: {clone_res.stderr}")
 
-        # 2. Run Bandit scan
+        # 2. Run Bandit scan (with timeout)
         scan_res = subprocess.run(
             ["bandit", "-r", temp_dir, "-f", "json"],
-            capture_output=True, text=True
+            capture_output=True, text=True, timeout=60
         )
         
         # Parse result
