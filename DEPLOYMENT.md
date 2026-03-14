@@ -1,6 +1,6 @@
 # Cloud Deployment Guide: Render.com ☁️
 
-Follow these steps to deploy your **Adaptive Risk Intelligence Framework** to the cloud so that everyone can access the dashboard and the GitHub action works globally.
+Follow these steps to deploy your **Risk-Aware CI/CD Pipeline with Security Scoring** to the cloud so that everyone can access the dashboard and the GitHub action works globally.
 
 ## Step 1: Push your code to GitHub
 Make sure all your latest changes (including the `render.yaml` and `requirements.txt` I just updated) are pushed to your GitHub repository:

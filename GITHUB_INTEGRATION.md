@@ -1,6 +1,6 @@
 # GitHub Integration Guide: Automated Risk Intelligence 🤖
 
-This guide explains how to set up the **Adaptive Risk Intelligence Framework** to run automatically every time you push code.
+This guide explains how to set up the **Risk-Aware CI/CD Pipeline with Security Scoring** to run automatically every time you push code.
 
 ## 1. How it works
 1. **GitHub Push**: You push code to your repository.
@@ -16,7 +16,7 @@ This guide explains how to set up the **Adaptive Risk Intelligence Framework** t
 Create a file at `.github/workflows/security-gate.yml` and paste the following:
 
 ```yaml
-name: Adaptive Security Gate
+name: Risk-Aware Security Gate
 on: [push]
 
 jobs:

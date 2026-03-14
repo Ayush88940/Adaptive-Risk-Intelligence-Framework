@@ -1,4 +1,4 @@
-# Adaptive Context-Aware Risk Intelligence Framework
+# Risk-Aware CI/CD Pipeline with Security Scoring
 
 This project builds a smart CI/CD pipeline that evaluates security risks and scores them intelligently using contextual data, and automatically decides whether deployment is safe.
 
