@@ -33,19 +33,19 @@ if __name__ == "__main__":
     
     # 1. Baseline Build
     run_step("Baseline Build", "examples/mock_scans/baseline.json")
-    time.sleep(1) # Ensure unique build IDs
+    time.sleep(4) # Extended sleep to show one-by-one animation on dashboard
     
     # 2. Perfect Build (Zero Risk)
     run_step("Perfect Security Build", "examples/mock_scans/perfect_build.json")
-    time.sleep(1)
+    time.sleep(4)
     
     # 3. High Risk Build (Simulate regression)
     run_step("High Risk Feature Branch", "examples/mock_scans/high_risk.json")
-    time.sleep(1)
+    time.sleep(4)
     
     # 4. Low Risk Warning (Simulate minor drift)
     run_step("Minor Dev Warning", "examples/mock_scans/low_risk_warning.json")
-    time.sleep(1)
+    time.sleep(4)
     
     # 5. Massive Drift Regression
     run_step("Critical Drift Regression", "examples/mock_scans/high_drift.json")
