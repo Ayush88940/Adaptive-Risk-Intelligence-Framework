@@ -29,10 +29,23 @@ def run_step(name, file_path):
 
 if __name__ == "__main__":
     print("Starting Experimental Evaluation Simulation...")
-    print("Make sure the Risk Engine API is running (python3 -m engine.main)")
+    print("Make sure the Risk Engine API is running (python3 -m engine.main)\n")
     
+    # 1. Baseline Build
     run_step("Baseline Build", "examples/mock_scans/baseline.json")
     time.sleep(1) # Ensure unique build IDs
-    run_step("High Risk Build", "examples/mock_scans/high_risk.json")
+    
+    # 2. Perfect Build (Zero Risk)
+    run_step("Perfect Security Build", "examples/mock_scans/perfect_build.json")
     time.sleep(1)
-    run_step("Drift Regression Build", "examples/mock_scans/high_drift.json")
+    
+    # 3. High Risk Build (Simulate regression)
+    run_step("High Risk Feature Branch", "examples/mock_scans/high_risk.json")
+    time.sleep(1)
+    
+    # 4. Low Risk Warning (Simulate minor drift)
+    run_step("Minor Dev Warning", "examples/mock_scans/low_risk_warning.json")
+    time.sleep(1)
+    
+    # 5. Massive Drift Regression
+    run_step("Critical Drift Regression", "examples/mock_scans/high_drift.json")

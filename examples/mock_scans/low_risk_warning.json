@@ -1,0 +1,13 @@
+{
+  "vulnerabilities": [
+    {
+      "id": "B104",
+      "severity": 3.0,
+      "exploitability": 0.2,
+      "exposure": 0.1,
+      "criticality": 0.2,
+      "stage": "dev",
+      "historical": false
+    }
+  ]
+}

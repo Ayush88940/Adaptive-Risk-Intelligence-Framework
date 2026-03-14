@@ -50,7 +50,7 @@ async def get_risk(request: RiskRequest, db: Session = Depends(get_db)):
     drift = calculate_drift(risk_score, previous_score)
     sdi = calculate_sdi(request.vulnerabilities, total_builds)
     
-    decision = "BLOCK" if risk_score > 70 or abs(drift) > 20 else "ALLOW"
+    decision = "BLOCK" if risk_score > 70 or drift > 20 else "ALLOW"
     recommendation = "Review high-risk vulnerabilities" if decision == "BLOCK" else "Proceed with deployment"
     
     # 4. Save to Database
