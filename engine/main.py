@@ -199,7 +199,8 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
             ))
 
         # 4. Process using existing logic
-        build_id = f"repo_scan_{uuid.uuid4().hex[:8]}"
+        repo_name = request.repo_url.rstrip("/").split("/")[-1].replace(".git", "")
+        build_id = f"repo_{repo_name}_{uuid.uuid4().hex[:4]}"
         
         # Reuse logic from calculate_risk
         previous_build = db.query(BuildDB).order_by(BuildDB.timestamp.desc()).first()
