@@ -1,8 +1,8 @@
 services:
-  # Backend Risk Engine
+  # 1. Backend API (FastAPI)
   - type: web
-    name: acrif-backend
-    env: python
+    name: acrif-api
+    runtime: python
     plan: free
     buildCommand: pip install --upgrade pip && pip install -r engine/requirements.txt
     startCommand: uvicorn engine.main:app --host 0.0.0.0 --port $PORT
@@ -12,17 +12,16 @@ services:
       - key: PYTHON_VERSION
         value: 3.10.0
 
-  # Frontend Dashboard
+  # 2. Frontend Dashboard (React/Vite)
   - type: web
-    name: acrif-dashboard
+    name: acrif-app
     runtime: static
     rootDir: dashboard
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
     envVars:
       - key: VITE_API_URL
-        value: https://acrif-backend-tcsh.onrender.com
+        fromService:
+          type: web
+          name: acrif-api
+          property: host
