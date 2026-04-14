@@ -26,6 +26,10 @@ def main():
                 conf_map = {"LOW": 0.4, "MEDIUM": 0.7, "HIGH": 1.0}
                 vulnerabilities.append({
                     "id": issue["test_id"],
+                    "category": issue.get("test_name", "General"),
+                    "description": issue.get("issue_text", "No description"),
+                    "file_path": issue.get("filename", "unknown"),
+                    "line_number": issue.get("line_number", 0),
                     "severity": sev_map.get(issue["issue_severity"], 5.0),
                     "exploitability": conf_map.get(issue["issue_confidence"], 0.5),
                     "exposure": 0.8,

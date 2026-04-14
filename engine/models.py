@@ -12,6 +12,7 @@ class BuildDB(Base):
     build_id = Column(String, unique=True, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
     risk_score = Column(Float)
+    baseline_score = Column(Float)
     drift = Column(Float)
     sdi = Column(Float)
     decision = Column(String)
@@ -22,6 +23,10 @@ class VulnerabilityDB(Base):
     __tablename__ = "vulnerabilities"
     id = Column(Integer, primary_key=True, index=True)
     vuln_id = Column(String) # e.g., CVE-xxx
+    category = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    file_path = Column(String, nullable=True)
+    line_number = Column(Integer, nullable=True)
     severity = Column(Float)
     exploitability = Column(Float)
     exposure = Column(Float)
@@ -35,6 +40,10 @@ class VulnerabilityDB(Base):
 # Pydantic Models (Schemas)
 class VulnerabilitySchema(BaseModel):
     id: str
+    category: Optional[str] = "General"
+    description: Optional[str] = "No description provided"
+    file_path: Optional[str] = "unknown"
+    line_number: Optional[int] = 0
     severity: float  # CVSS Score
     exploitability: float
     exposure: float
@@ -49,6 +58,7 @@ class RiskRequest(BaseModel):
 class RiskResponse(BaseModel):
     build_id: str
     risk_score: float
+    baseline_score: float
     drift: float
     sdi: float
     decision: str

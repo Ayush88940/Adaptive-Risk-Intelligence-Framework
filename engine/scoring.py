@@ -1,40 +1,56 @@
 from typing import List
 from .models import VulnerabilitySchema
+from .ahp import get_adaptive_weights
 
 def calculate_risk_score(vulnerabilities: List[VulnerabilitySchema]) -> float:
     """
-    R = Base Risk * Adaptive Factor
-    Base Risk: (Severity * 0.5) + (Exploitability * 0.5)
-    Adaptive Factor: 1.0 + Stage_Context + Exposure_Context
+    R = Σ (Weight_i * Value_i)
+    Weights are derived from AHP: [Severity, Exploitability, Stage, Exposure]
+    """
+    if not vulnerabilities:
+        return 0.0
+    
+    weights = get_adaptive_weights()
+    total_score = 0.0
+    
+    for v in vulnerabilities:
+        # Normalize variables to 0-10 scale
+        s = v.severity 
+        e = v.exploitability * 10
+        
+        # Map stage to numeric values: dev=2, staging=5, prod=10
+        stage_map = {"dev": 2.0, "staging": 5.0, "prod": 10.0}
+        st = stage_map.get(v.stage.lower(), 10.0)
+        
+        ex = v.exposure * 10 # scale 0-1 to 0-10
+        
+        # Weighted calculation
+        r_i = (s * weights["severity"]) + \
+              (e * weights["exploitability"]) + \
+              (st * weights["stage"]) + \
+              (ex * weights["exposure"])
+        
+        # Rescale from 0-10 back to 1-100 for the final score
+        total_score += (r_i * 10)
+        
+    avg_score = total_score / len(vulnerabilities)
+    return min(100.0, avg_score)
+
+def calculate_baseline_score(vulnerabilities: List[VulnerabilitySchema]) -> float:
+    """
+    Baseline Risk (CVSS-only): (Severity * 0.5 + Exploitability * 0.5) * 10
+    Used for comparison in research paper to show 'Alert Fatigue' reduction.
     """
     if not vulnerabilities:
         return 0.0
     
     total_score = 0.0
     for v in vulnerabilities:
-        s = v.severity # 0-10 scale
-        e = v.exploitability * 10 # 0-10 scale
+        s = v.severity
+        e = v.exploitability * 10
+        total_score += ((s * 0.5) + (e * 0.5)) * 10
         
-        # Base Risk calculation (easy math)
-        base_risk = (s * 0.5) + (e * 0.5)
-        
-        # Adaptive Factor calculation based on context
-        # Stage: Dev=0.1, Staging=0.2, Prod=0.5
-        d_map = {"dev": 0.1, "staging": 0.2, "prod": 0.5}
-        d_context = d_map.get(v.stage.lower(), 0.5)
-        
-        # Exposure: High exposure means higher penalty
-        exposure_context = v.exposure * 0.3  # scales 0 to 0.3
-        
-        adaptive_factor = 1.0 + d_context + exposure_context
-        
-        # Final individual score (scaled directly to 100 with * 10)
-        r_i = (base_risk * 10) * adaptive_factor
-        total_score += r_i
-        
-    # Final normalization (sum of averages, capped at 100)
-    avg_score = total_score / len(vulnerabilities)
-    return min(100.0, avg_score)
+    return min(100.0, total_score / len(vulnerabilities))
 
 def calculate_drift(current_score: float, previous_score: float) -> float:
     """

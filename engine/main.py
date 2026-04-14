@@ -11,7 +11,7 @@ import shutil
 import json
 import uuid
 from .models import VulnerabilitySchema, RiskRequest, RiskResponse, BuildDB, VulnerabilityDB
-from .scoring import calculate_risk_score, calculate_drift, calculate_sdi
+from .scoring import calculate_risk_score, calculate_baseline_score, calculate_drift, calculate_sdi
 from .database import engine, Base, get_db
 from pydantic import BaseModel
 
@@ -47,6 +47,7 @@ async def get_risk(request: RiskRequest, db: Session = Depends(get_db)):
     
     # 3. Calculate scores
     risk_score = calculate_risk_score(request.vulnerabilities)
+    baseline_score = calculate_baseline_score(request.vulnerabilities)
     drift = calculate_drift(risk_score, previous_score)
     sdi = calculate_sdi(request.vulnerabilities, total_builds)
     
@@ -58,6 +59,7 @@ async def get_risk(request: RiskRequest, db: Session = Depends(get_db)):
         new_build = BuildDB(
             build_id=request.build_id,
             risk_score=risk_score,
+            baseline_score=baseline_score,
             drift=drift,
             sdi=sdi,
             decision=decision
@@ -71,6 +73,7 @@ async def get_risk(request: RiskRequest, db: Session = Depends(get_db)):
         new_build = BuildDB(
             build_id=unique_id,
             risk_score=risk_score,
+            baseline_score=baseline_score,
             drift=drift,
             sdi=sdi,
             decision=decision
@@ -84,6 +87,10 @@ async def get_risk(request: RiskRequest, db: Session = Depends(get_db)):
     for v in request.vulnerabilities:
         v_db = VulnerabilityDB(
             vuln_id=v.id,
+            category=v.category,
+            description=v.description,
+            file_path=v.file_path,
+            line_number=v.line_number,
             severity=v.severity,
             exploitability=v.exploitability,
             exposure=v.exposure,
@@ -99,6 +106,7 @@ async def get_risk(request: RiskRequest, db: Session = Depends(get_db)):
     return RiskResponse(
         build_id=request.build_id,
         risk_score=risk_score,
+        baseline_score=baseline_score,
         drift=drift,
         sdi=sdi,
         decision=decision,
@@ -194,6 +202,10 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
             
             vulnerabilities.append(VulnerabilitySchema(
                 id=issue.get("test_id", "VULN"),
+                category=issue.get("test_name", "General"),
+                description=issue.get("issue_text", "No description"),
+                file_path=issue.get("filename", "unknown"),
+                line_number=issue.get("line_number", 0),
                 severity=sev_map.get(issue.get("issue_severity"), 2.0),
                 exploitability=conf_map.get(issue.get("issue_confidence"), 0.2),
                 exposure=0.1 + (idx * 0.1), # Varies from 0.1 to 0.3
@@ -212,6 +224,7 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
         total_build_count = db.query(BuildDB).count() + 1
         
         risk_score = calculate_risk_score(vulnerabilities) if vulnerabilities else 0.0
+        baseline_score = calculate_baseline_score(vulnerabilities) if vulnerabilities else 0.0
         drift = calculate_drift(risk_score, previous_score)
         sdi = calculate_sdi(vulnerabilities, total_build_count) if vulnerabilities else 0.0
         
@@ -222,6 +235,7 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
         new_build = BuildDB(
             build_id=build_id,
             risk_score=risk_score,
+            baseline_score=baseline_score,
             drift=drift,
             sdi=sdi,
             decision=decision
@@ -233,6 +247,10 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
         for v in vulnerabilities:
             v_db = VulnerabilityDB(
                 vuln_id=v.id,
+                category=v.category,
+                description=v.description,
+                file_path=v.file_path,
+                line_number=v.line_number,
                 severity=v.severity,
                 exploitability=v.exploitability,
                 exposure=v.exposure,
@@ -248,9 +266,11 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
             "status": "success",
             "decision": decision,
             "risk_score": round(risk_score, 2),
+            "baseline_score": round(baseline_score, 2),
             "drift": round(drift, 2),
             "recommendation": recommendation,
-            "vuln_count": len(vulnerabilities)
+            "vuln_count": len(vulnerabilities),
+            "vulnerabilities": vulnerabilities
         }
 
     except Exception as e:

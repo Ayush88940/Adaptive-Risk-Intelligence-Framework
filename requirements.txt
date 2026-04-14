@@ -9,3 +9,5 @@ python-dotenv
 pandas
 bandit
 gunicorn
+numpy
+matplotlib

@@ -182,8 +182,46 @@ const App = () => {
                 </span>
                 <span className="score">{scanResult.risk_score}</span>
               </div>
-              <p className="recommendation">{scanResult.recommendation}</p>
               <p className="details">Uncovered {scanResult.vuln_count} risk artifacts using adaptive weighting.</p>
+              
+              {/* Detailed Vulnerability List */}
+              {scanResult.vulnerabilities && scanResult.vulnerabilities.length > 0 && (
+                <div style={{ marginTop: '1.5rem', maxHeight: '200px', overflowY: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '10px' }}>
+                  <h4 style={{ margin: '0 0 10px', fontSize: '0.9rem', color: '#8b949e', textTransform: 'uppercase', letterSpacing: '1px' }}>Detected Risk Details</h4>
+                  {scanResult.vulnerabilities.map((v, i) => (
+                    <div key={i} style={{ 
+                      padding: '12px', 
+                      marginBottom: '8px',
+                      background: 'rgba(255,255,255,0.03)', 
+                      border: '1px solid rgba(255,255,255,0.05)',
+                      borderRadius: '6px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ color: '#58a6ff', fontWeight: 700, fontSize: '0.9rem', textTransform: 'capitalize' }}>
+                          {v.category.replace('_', ' ')}
+                        </span>
+                        <span style={{ 
+                          fontSize: '0.7rem', 
+                          background: v.severity > 7 ? 'rgba(248,81,73,0.2)' : 'rgba(88,166,255,0.2)', 
+                          color: v.severity > 7 ? '#f85149' : '#58a6ff', 
+                          padding: '2px 8px', 
+                          borderRadius: '10px',
+                          border: `1px solid ${v.severity > 7 ? 'rgba(248,81,73,0.3)' : 'rgba(88,166,255,0.3)'}`
+                        }}>
+                          SEVERITY: {v.severity}
+                        </span>
+                      </div>
+                      <p style={{ margin: '0 0 8px', fontSize: '0.85rem', color: '#e6edf3', lineHeight: '1.4' }}>{v.description}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#8b949e' }}>
+                        <Clock size={12} />
+                        <span>File: <span style={{ color: '#bc8cff', fontFamily: 'monospace' }}>{v.file_path.split('/').pop()}</span></span>
+                        <span style={{ opacity: 0.5 }}>•</span>
+                        <span>Line: <span style={{ color: '#3fb950' }}>{v.line_number}</span></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
