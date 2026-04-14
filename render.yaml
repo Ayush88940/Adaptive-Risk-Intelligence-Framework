@@ -25,4 +25,4 @@ services:
         value: no-cache
     envVars:
       - key: VITE_API_URL
-        value: https://acrif-backend.onrender.com
+        value: https://acrif-backend-tcsh.onrender.com
