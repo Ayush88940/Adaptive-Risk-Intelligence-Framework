@@ -13,12 +13,11 @@ services:
         value: 3.10.0
 
   # Frontend Dashboard
-  - type: web
+  - type: static
     name: acrif-dashboard
-    runtime: static
-    # plan: free is removed here because static sites are implicitly free on Render
-    buildCommand: cd dashboard && npm install && npm run build
-    staticPublishPath: dashboard/dist
+    rootDir: dashboard
+    buildCommand: npm install && npm run build
+    publishPath: dist
     headers:
       - path: /*
         name: Cache-Control
