@@ -33,6 +33,7 @@ class VulnerabilityDB(Base):
     criticality = Column(Float)
     stage = Column(String)
     historical = Column(Boolean)
+    analysis_type = Column(String, default="SAST") # SAST or DAST
     build_id = Column(Integer, ForeignKey("builds.id"))
     
     build = relationship("BuildDB", back_populates="vulnerabilities")
@@ -50,6 +51,7 @@ class VulnerabilitySchema(BaseModel):
     criticality: float
     stage: str
     historical: bool
+    analysis_type: Optional[str] = "SAST"
 
 class RiskRequest(BaseModel):
     build_id: str

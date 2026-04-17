@@ -13,6 +13,7 @@ const App = () => {
   const [stats, setStats] = useState({ avg_risk: 0, total_builds: 0, avg_sdi: 0 });
   const [loading, setLoading] = useState(true);
   const [repoUrl, setRepoUrl] = useState('');
+  const [liveUrl, setLiveUrl] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
   const [scanError, setScanError] = useState(null);
@@ -45,10 +46,14 @@ const App = () => {
     if (!repoUrl) return;
     setScanning(true); setScanResult(null); setScanError(null);
     try {
-      const res = await axios.post(`${API_BASE}/scan-repo`, { repo_url: repoUrl });
+      const res = await axios.post(`${API_BASE}/scan-repo`, { 
+        repo_url: repoUrl,
+        live_url: liveUrl 
+      });
       setScanResult(res.data);
       fetchData();
       setRepoUrl('');
+      setLiveUrl('');
     } catch (err) {
       const msg = err.response?.data?.detail || err.message;
       setScanError(`Scan failed: ${msg}`);
@@ -153,9 +158,19 @@ const App = () => {
               <Search className="input-icon" size={20} />
               <input 
                 type="text" 
-                placeholder="https://github.com/username/repo"
+                placeholder="GitHub Repo URL (SAST)"
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
+                disabled={scanning}
+              />
+            </div>
+            <div className="input-group">
+              <Activity className="input-icon" size={20} />
+              <input 
+                type="text" 
+                placeholder="Live Website URL (DAST - Optional)"
+                value={liveUrl}
+                onChange={(e) => setLiveUrl(e.target.value)}
                 disabled={scanning}
               />
             </div>
@@ -196,20 +211,32 @@ const App = () => {
                       border: '1px solid rgba(255,255,255,0.05)',
                       borderRadius: '6px'
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <span style={{ color: '#58a6ff', fontWeight: 700, fontSize: '0.9rem', textTransform: 'capitalize' }}>
                           {v.category.replace('_', ' ')}
                         </span>
-                        <span style={{ 
-                          fontSize: '0.7rem', 
-                          background: v.severity > 7 ? 'rgba(248,81,73,0.2)' : 'rgba(88,166,255,0.2)', 
-                          color: v.severity > 7 ? '#f85149' : '#58a6ff', 
-                          padding: '2px 8px', 
-                          borderRadius: '10px',
-                          border: `1px solid ${v.severity > 7 ? 'rgba(248,81,73,0.3)' : 'rgba(88,166,255,0.3)'}`
-                        }}>
-                          SEVERITY: {v.severity}
-                        </span>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <span style={{ 
+                            fontSize: '0.7rem', 
+                            background: v.severity > 7 ? 'rgba(248,81,73,0.2)' : 'rgba(88,166,255,0.2)', 
+                            color: v.severity > 7 ? '#f85149' : '#58a6ff', 
+                            padding: '2px 8px', 
+                            borderRadius: '10px',
+                            border: `1px solid ${v.severity > 7 ? 'rgba(248,81,73,0.3)' : 'rgba(88,166,255,0.3)'}`
+                          }}>
+                            SEVERITY: {v.severity}
+                          </span>
+                          <span style={{ 
+                            fontSize: '0.7rem', 
+                            background: v.analysis_type === 'DAST' ? 'rgba(210,153,34,0.2)' : 'rgba(139,148,158,0.2)', 
+                            color: v.analysis_type === 'DAST' ? '#d29922' : '#8b949e', 
+                            padding: '2px 8px', 
+                            borderRadius: '10px',
+                            border: `1px solid ${v.analysis_type === 'DAST' ? 'rgba(210,153,34,0.3)' : 'rgba(139,148,158,0.3)'}`
+                          }}>
+                            {v.analysis_type}
+                          </span>
+                        </div>
                       </div>
                       <p style={{ margin: '0 0 8px', fontSize: '0.85rem', color: '#e6edf3', lineHeight: '1.4' }}>{v.description}</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#8b949e' }}>

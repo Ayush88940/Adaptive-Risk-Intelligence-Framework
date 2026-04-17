@@ -13,10 +13,12 @@ import uuid
 from .models import VulnerabilitySchema, RiskRequest, RiskResponse, BuildDB, VulnerabilityDB
 from .scoring import calculate_risk_score, calculate_baseline_score, calculate_drift, calculate_sdi
 from .database import engine, Base, get_db
+from .dast_engine import run_dast_scan
 from pydantic import BaseModel
 
 class RepoScanRequest(BaseModel):
     repo_url: str
+    live_url: Optional[str] = None
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -211,8 +213,13 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
                 exposure=0.1 + (idx * 0.1), # Varies from 0.1 to 0.3
                 criticality=0.5,
                 stage=stage_cycle[idx],
-                historical=False
+                analysis_type="SAST"
             ))
+
+        # 3.b Run DAST if live_url is provided
+        if request.live_url:
+            dast_results = await run_dast_scan(request.live_url)
+            vulnerabilities.extend(dast_results)
 
         # 4. Process using existing logic
         repo_name = request.repo_url.rstrip("/").split("/")[-1].replace(".git", "")
@@ -257,6 +264,7 @@ async def scan_repo(request: RepoScanRequest, db: Session = Depends(get_db)):
                 criticality=v.criticality,
                 stage=v.stage,
                 historical=v.historical,
+                analysis_type=v.analysis_type,
                 build_id=new_build.id
             )
             db.add(v_db)
