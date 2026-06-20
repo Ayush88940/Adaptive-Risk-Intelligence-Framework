@@ -333,7 +333,7 @@ const App = () => {
                     </span>
                   </td>
                   <td style={{ fontWeight: 500 }}>{build.sdi.toFixed(1)}</td>
-                  <td className="text-muted" style={{ fontSize: '0.85rem' }}>{new Date(build.timestamp).toLocaleString()}</td>
+                  <td className="text-muted" style={{ fontSize: '0.85rem' }}>{new Date(build.timestamp + (!build.timestamp.endsWith('Z') ? 'Z' : '')).toLocaleString()}</td>
                 </tr>
               ))}
               {builds.length === 0 && (
