@@ -6,8 +6,6 @@ pydantic
 pytest
 httpx
 python-dotenv
-pandas==2.1.4
 bandit
 gunicorn
 numpy<2.0.0
-matplotlib
