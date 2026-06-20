@@ -50,7 +50,7 @@ class VulnerabilitySchema(BaseModel):
     exposure: float
     criticality: float
     stage: str
-    historical: bool
+    historical: bool = False
     analysis_type: Optional[str] = "SAST"
 
 class RiskRequest(BaseModel):
