@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Depends
 import uvicorn
 import sqlalchemy
